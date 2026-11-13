@@ -290,8 +290,8 @@ function setView(v) {
   view = v;
   btnDetail.classList.toggle('active', v === 'detail');
   btnTable.classList.toggle('active', v === 'table');
-  list.style.display = v === 'detail' ? '' : 'none';
-  tableEl.style.display = v === 'table' ? '' : 'none';
+  list.style.display = v === 'detail' ? 'block' : 'none';
+  tableEl.style.display = v === 'table' ? 'block' : 'none';
   apply();
 }
 
