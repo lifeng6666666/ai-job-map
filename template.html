@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职业 AI 替代程度地图 · AI Job Replacement Map</title>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #181c26; --panel2: #1f2431; --border: #2a3040;
+    --text: #e8eaf0; --muted: #8b93a7; --accent: #5b8cff;
+    --low: #35c46f; --mid: #f0b429; --high: #f25a5a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+  a { color: var(--accent); }
+  header { padding: 28px 24px 16px; max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: .5px; }
+  h1 span { color: var(--accent); }
+  .subtitle { color: var(--muted); margin-top: 6px; font-size: 13px; }
+  .stats { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; min-width: 130px; }
+  .stat b { font-size: 20px; display: block; }
+  .stat small { color: var(--muted); font-size: 12px; }
+  .controls { position: sticky; top: 0; z-index: 10; background: linear-gradient(var(--bg) 85%, transparent); padding: 14px 24px 18px; max-width: 1100px; margin: 0 auto; }
+  .controls-inner { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  .controls input[type=text], .controls select { background: var(--panel2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none; }
+  .controls input[type=text] { flex: 1 1 220px; min-width: 180px; }
+  .controls input[type=range] { accent-color: var(--accent); }
+  .range-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .range-wrap b { color: var(--text); min-width: 42px; text-align: center; }
+  .count-info { color: var(--muted); font-size: 12px; margin-left: auto; white-space: nowrap; }
+  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .card-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .card-title { font-size: 15px; font-weight: 600; }
+  .card-en { color: var(--muted); font-size: 11.5px; font-style: italic; opacity: .8; }
+  .card-code { color: var(--muted); font-size: 12px; font-family: Consolas, monospace; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--panel2); border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+  .score-badge { margin-left: auto; font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 20px; color: #0f1117; }
+  .desc { color: var(--muted); font-size: 12.5px; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+  .desc.open { -webkit-line-clamp: unset; overflow: visible; }
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .bar-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .bar { flex: 1; height: 18px; border-radius: 9px; overflow: hidden; display: flex; background: var(--panel2); }
+  .seg { height: 100%; transition: width .3s; cursor: default; position: relative; }
+  .seg:hover::after { content: attr(data-tip); position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); background: #000c; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; white-space: nowrap; z-index: 20; pointer-events: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--border); color: var(--muted); cursor: default; }
+  .chip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: baseline; }
+  .chip b { color: var(--text); font-weight: 600; }
+  #loadMore { display: block; margin: 20px auto; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 10px 30px; font-size: 14px; cursor: pointer; }
+  #loadMore:hover { filter: brightness(1.15); }
+  details.method { max-width: 1100px; margin: 0 auto 20px; padding: 0 24px; }
+  details.method summary { cursor: pointer; color: var(--accent); font-size: 13px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+  details.method div { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; padding: 14px 18px; color: var(--muted); font-size: 13px; }
+  details.method h3 { color: var(--text); font-size: 14px; margin: 12px 0 6px; }
+  .ai-table { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 16px; margin-top: 8px; }
+  .ai-table div { display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px dashed var(--border); padding: 3px 0; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>职业 AI 替代程度地图 <span>· AI Job Replacement Map</span></h1>
+  <div class="subtitle">数据来源：美国劳工部 O*NET 29.1 数据库（SOC 职业分类，共 1016 个职业）· 方法：职业能力分布 × AI 能力得分</div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="controls">
+  <div class="controls-inner">
+    <input type="text" id="search" placeholder="搜索职业名称或描述…">
+    <select id="groupFilter"><option value="">全部职业大类</option></select>
+    <select id="sortSel">
+      <option value="scoreDesc">替代分数 高→低</option>
+      <option value="scoreAsc">替代分数 低→高</option>
+      <option value="titleAsc">职业名称 A→Z</option>
+    </select>
+    <div class="range-wrap">替代分数 ≥ <input type="range" id="minScore" min="0.55" max="0.75" step="0.01" value="0.55"><b id="minScoreVal">0.55</b></div>
+    <div class="count-info" id="countInfo"></div>
+  </div>
+</div>
+
+<details class="method">
+  <summary>方法说明与 AI 能力得分表（点击展开）</summary>
+  <div>
+    <h3>计算方法</h3>
+    <p>① 能力分布：取 O*NET 每个职业 35 项技能的重要性评分（IM，1–5 分，来自职业分析师调查），按 <b>重要性³</b> 加权后归一化，使每项能力占比之和 = 1（加立方是为了突出各职业的特有技能，避免所有职业权重趋同）。</p>
+    <p>② AI 能力得分：对 35 项技能逐项评估当前 AI（大模型、智能体、自动化系统）的能力水平，取值 0–1（见下表）。</p>
+    <p>③ 替代分数 = Σ（能力权重 × AI 能力得分），即"该职业的能力组合中，有多大比例可由 AI 完成"。例：若某职业 = 计算机编程 0.5 + 需求分析 0.5，且 AI 编程能力为 1，则替代分数 = 0.5×1 + 0.5×0.5 = 0.75。分数越高，被 AI 替代的潜力越大。</p>
+    <p>④ 数据处理：1016 个职业中，137 个新职业缺少技能评分，按同代码前缀职业 → 同大类平均的顺序估算补齐。职业名称与描述由机器翻译（Google）生成，卡片中保留英文原文以便对照。分数仅供研究参考，不代表实际就业影响。</p>
+    <h3>AI 能力得分表（0–1）</h3>
+    <div class="ai-table" id="aiTable"></div>
+  </div>
+</details>
+
+<main id="list"></main>
+<button id="loadMore">加载更多</button>
+<footer>基于 O*NET 29.1（U.S. Department of Labor / onetcenter.org）构建 · AI 能力得分为作者基于 2026 年 AI 能力的主观评估</footer>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const RAW = JSON.parse(document.getElementById('data').textContent);
+const SKILLS = RAW.skills, AI = RAW.ai, JOBS = RAW.jobs;
+
+// ---- 技能颜色（35 色环）----
+function skillColor(i) {
+  const h = Math.round(i * 360 / SKILLS.length);
+  return `hsl(${h} 65% 58%)`;
+}
+
+// ---- 分数颜色（绿→黄→红）----
+function scoreColor(s) {
+  const t = Math.min(1, Math.max(0, (s - 0.55) / (0.75 - 0.55)));
+  if (t < 0.5) return `hsl(${Math.round(140 - t * 220)} 70% 52%)`;
+  return `hsl(${Math.round(40 - (t - 0.5) * 60)} 75% 55%)`;
+}
+
+// ---- 统计 ----
+const groups = [...new Set(JOBS.map(j => j.g))].sort();
+const avg = JOBS.reduce((a, j) => a + j.s, 0) / JOBS.length;
+const hi = JOBS.filter(j => j.s >= 0.65).length;
+document.getElementById('stats').innerHTML = `
+  <div class="stat"><b>${JOBS.length}</b><small>职业总数</small></div>
+  <div class="stat"><b>${avg.toFixed(3)}</b><small>平均替代分数</small></div>
+  <div class="stat"><b>${hi}</b><small>替代分数 ≥ 0.65（高暴露）</small></div>
+  <div class="stat"><b>${SKILLS.length}</b><small>能力维度</small></div>`;
+
+const groupSel = document.getElementById('groupFilter');
+groups.forEach(g => { const o = document.createElement('option'); o.value = o.textContent = g; groupSel.appendChild(o); });
+
+// AI 能力得分表
+document.getElementById('aiTable').innerHTML = SKILLS.map((s, i) =>
+  `<div><span>${s}</span><b style="color:${scoreColor(0.55 + AI[i] * 0.27)}">${AI[i].toFixed(2)}</b></div>`).join('');
+
+// ---- 过滤 / 排序 ----
+const search = document.getElementById('search'), sortSel = document.getElementById('sortSel'),
+      minScore = document.getElementById('minScore'), minScoreVal = document.getElementById('minScoreVal');
+let filtered = [];
+
+function apply() {
+  const q = search.value.trim().toLowerCase(), g = groupSel.value,
+        ms = parseFloat(minScore.value), mode = sortSel.value;
+  minScoreVal.textContent = ms.toFixed(2);
+  filtered = JOBS.filter(j =>
+    (!g || j.g === g) && j.s >= ms &&
+    (!q || j.t.toLowerCase().includes(q) || j.te.toLowerCase().includes(q) ||
+     j.d.toLowerCase().includes(q) || j.de.toLowerCase().includes(q)));
+  filtered.sort(mode === 'scoreDesc' ? (a, b) => b.s - a.s
+    : mode === 'scoreAsc' ? (a, b) => a.s - b.s
+    : (a, b) => a.t.localeCompare(b.t));
+  rendered = 0;
+  list.innerHTML = '';
+  renderMore();
+  document.getElementById('countInfo').textContent = `${filtered.length} / ${JOBS.length} 个职业`;
+}
+
+// ---- 渲染 ----
+const list = document.getElementById('list'), loadMoreBtn = document.getElementById('loadMore');
+const PAGE = 60;
+let rendered = 0;
+
+function cardHTML(j) {
+  const segs = [], chips = [];
+  let other = 0;
+  j.w.forEach(([idx, w], rank) => {
+    if (rank < 8) {
+      const pct = (w * 100).toFixed(1);
+      segs.push(`<div class="seg" style="width:${w * 100}%;background:${skillColor(idx)}" data-tip="${SKILLS[idx]} ${pct}%（AI: ${AI[idx].toFixed(2)}）"></div>`);
+      chips.push(`<span class="chip"><i style="background:${skillColor(idx)}"></i>${SKILLS[idx]} <b>${pct}%</b></span>`);
+    } else other += w;
+  });
+  if (other > 0.005) segs.push(`<div class="seg" style="width:${other * 100}%;background:#3a4154" data-tip="其他能力 ${(other * 100).toFixed(1)}%"></div>`);
+  const pctScore = (j.s * 100).toFixed(1);
+  return `<div class="card">
+    <div class="card-top">
+      <span class="card-title">${j.t}</span>
+      <span class="card-en">${j.te}</span>
+      <span class="card-code">${j.c}</span>
+      <span class="badge">${j.g}</span>
+      <span class="score-badge" style="background:${scoreColor(j.s)}">替代分数 ${j.s.toFixed(3)}（${pctScore}%）</span>
+    </div>
+    <div class="desc" onclick="this.classList.toggle('open')">${j.d}<br><br><span style="font-style:italic;opacity:.65">【英文原文】${j.de}</span></div>
+    <div class="bar-row"><span class="bar-label">能力分布</span><div class="bar">${segs.join('')}</div></div>
+    <div class="chips">${chips.join('')}</div>
+  </div>`;
+}
+
+function renderMore() {
+  const slice = filtered.slice(rendered, rendered + PAGE);
+  list.insertAdjacentHTML('beforeend', slice.map(cardHTML).join(''));
+  rendered += slice.length;
+  loadMoreBtn.style.display = rendered < filtered.length ? 'block' : 'none';
+}
+loadMoreBtn.onclick = renderMore;
+
+[search, groupSel, sortSel, minScore].forEach(el => el.addEventListener('input', apply));
+apply();
+</script>
+</body>
+</html>
