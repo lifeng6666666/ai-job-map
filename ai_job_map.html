@@ -11,8 +11,20 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
-  header { padding: 24px 24px 12px; max-width: 1200px; margin: 0 auto; }
+  header { position: relative; padding: 24px 24px 12px; max-width: 1200px; margin: 0 auto; }
+  .hdr-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   h1 { font-size: 24px; font-weight: 700; }
+  .hdr-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hdr-btn { background: var(--panel); border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 7px 12px; font-size: 12.5px; cursor: pointer; }
+  .hdr-btn:hover, .hdr-btn.active { border-color: var(--accent); color: var(--text); }
+  .pop-panel { display: none; position: absolute; top: 64px; right: 24px; width: min(480px, calc(100vw - 48px)); max-height: 72vh; overflow: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; box-shadow: 0 14px 40px #000a; z-index: 50; }
+  .pop-panel.open { display: block; }
+  .pop-panel h3 { color: var(--text); font-size: 14px; margin: 10px 0 6px; }
+  .pop-panel h3:first-child { margin-top: 0; }
+  .pop-panel p { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; }
+  .panel-tools { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 10px 0 4px; font-size: 12px; color: var(--muted); }
+  .panel-tools label { display: flex; align-items: center; gap: 6px; }
+  .pop-panel select { background: var(--panel2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 5px 8px; font-size: 12.5px; outline: none; }
   h1 span { color: var(--accent); }
   .subtitle { color: var(--muted); margin-top: 6px; font-size: 13px; }
   .stats { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
@@ -22,7 +34,11 @@
   .controls { position: sticky; top: 0; z-index: 10; background: linear-gradient(var(--bg) 85%, transparent); padding: 12px 24px 14px; max-width: 1200px; margin: 0 auto; }
   .controls-inner { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
   .controls input[type=text], .controls select { background: var(--panel2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; outline: none; }
-  .controls input[type=text] { flex: 1 1 200px; min-width: 160px; }
+  .search-wrap { position: relative; flex: 1 1 200px; min-width: 160px; display: flex; }
+  .search-wrap input[type=text] { width: 100%; padding-right: 30px; }
+  .clear-btn { display: none; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border: none; border-radius: 50%; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; line-height: 1; }
+  .clear-btn:hover { background: var(--panel2); color: var(--text); }
+  .search-wrap.has-value .clear-btn { display: block; }
   .controls input[type=range] { accent-color: var(--accent); }
   .range-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
   .range-wrap b { color: var(--accent); min-width: 52px; text-align: center; }
@@ -54,7 +70,12 @@
   .chip:hover { border-color: var(--accent); color: var(--text); }
   .chip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
   .chip b { color: var(--text); font-weight: 600; }
-  /* 粗略表格视图 */
+  .seg.other { cursor: pointer; }
+  .more-chips { display: none; }
+  .more-chips.open { display: flex; }
+  .other-chip { cursor: pointer; }
+  .other-chip:hover { border-color: var(--accent); color: var(--text); }
+  /* 概览表格视图 */
   #table { display: none; }
   .legend { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
   .legend-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
@@ -72,10 +93,11 @@
   .trow .seg { height: 100%; position: relative; }
   #loadMore { display: block; margin: 20px auto; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 10px 30px; font-size: 14px; cursor: pointer; }
   #loadMore:hover { filter: brightness(1.15); }
-  details.method { max-width: 1200px; margin: 0 auto 20px; padding: 0 24px; }
-  details.method summary { cursor: pointer; color: var(--accent); font-size: 13px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
-  details.method div { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; padding: 14px 18px; color: var(--muted); font-size: 13px; }
-  details.method h3 { color: var(--text); font-size: 14px; margin: 12px 0 6px; }
+  .trow.open { border-color: var(--accent); border-radius: 8px 8px 0 0; margin-bottom: 0; }
+  .tdetail { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 10px 14px 12px; margin-bottom: 8px; }
+  .tdesc { color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+  .tdesc .en { font-style: italic; opacity: .7; }
+  .tdetail .bar-row { margin-top: 4px; }
   .ai-table { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 4px 16px; margin-top: 8px; }
   .ai-table div { display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px dashed var(--border); padding: 3px 0; }
   footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
@@ -83,18 +105,49 @@
 </head>
 <body>
 <header>
-  <h1>职业 AI 替代程度地图 <span>· AI Job Replacement Map</span></h1>
+  <div class="hdr-top">
+    <h1>职业 AI 替代程度地图 <span>· AI Job Replacement Map</span></h1>
+    <div class="hdr-actions">
+      <button class="hdr-btn" id="btnMethod">方法说明</button>
+      <button class="hdr-btn" id="btnAi">AI 能力得分（2026）</button>
+    </div>
+  </div>
   <div class="subtitle" id="subtitle"></div>
   <div class="stats" id="stats"></div>
+
+  <div class="pop-panel" id="methodPanel">
+    <h3>计算方法</h3>
+    <p>① 能力分布：取 O*NET 每个职业 35 项技能的重要性评分（IM，1–5 分，来自职业分析师调查），按 <b>重要性³</b> 加权后归一化，使每项能力占比之和 = 1（加立方是为了突出各职业的特有技能，避免所有职业权重趋同）。</p>
+    <p>② AI 能力得分：对 35 项技能逐项评估 AI（大模型、智能体、自动化系统）的能力水平，取值 0–1。每项技能设定 2026 年基准分与年均增长率，<b>得分(year) = 基准分 + 增长率 × (年份 − 2026)</b>（上限 1）。点击右上角“AI 能力得分”可查看当前年份每项技能的得分。</p>
+    <p>③ 替代分数 = Σ（能力权重 × AI 能力得分），即“该职业的能力组合中，有多大比例可由 AI 完成”。例：若某职业 = 计算机编程 0.5 + 需求分析 0.5，且 AI 编程能力为 1，则替代分数 = 0.5×1 + 0.5×0.5 = 0.75。</p>
+    <p>④ 数据处理：1016 个职业中，137 个新职业缺少技能评分，按同代码前缀职业 → 同大类平均的顺序估算补齐。职业名称与描述经机器翻译自动生成，卡片中保留英文原文对照。点击任意能力标签可筛选权重 ≥ 5% 的职业列表。分数仅供研究参考。</p>
+  </div>
+
+  <div class="pop-panel" id="aiPanel">
+    <h3>AI 能力得分（<span id="aiPanelYear">2026</span>）</h3>
+    <p>当前年份各项技能得分（0–1）。可在此切换年份与排序。</p>
+    <div class="panel-tools">
+      <label>年份 <select id="aiYearSel"></select></label>
+      <label>排序 <select id="aiSortSel">
+        <option value="scoreDesc">得分 高→低</option>
+        <option value="scoreAsc">得分 低→高</option>
+        <option value="name">能力名称 A→Z</option>
+      </select></label>
+    </div>
+    <div class="ai-table" id="aiTable"></div>
+  </div>
 </header>
 
 <div class="controls">
   <div class="controls-inner">
     <div class="view-toggle">
       <button id="btnDetail" class="active">详细视图</button>
-      <button id="btnTable">粗略视图</button>
+      <button id="btnTable">概览视图</button>
     </div>
-    <input type="text" id="search" placeholder="搜索职业名称或描述（中英文）…">
+    <div class="search-wrap" id="searchWrap">
+      <input type="text" id="search" placeholder="搜索职业名称或描述（中英文）…">
+      <button class="clear-btn" id="clearSearch" title="清除搜索" aria-label="清除搜索">✕</button>
+    </div>
     <select id="groupFilter"><option value="">全部职业大类</option></select>
     <select id="sortSel">
       <option value="scoreDesc">替代分数 高→低</option>
@@ -110,27 +163,14 @@
   </div>
 </div>
 
-<details class="method">
-  <summary>方法说明与 AI 能力得分演进表（点击展开）</summary>
-  <div>
-    <h3>计算方法</h3>
-    <p>① 能力分布：取 O*NET 每个职业 35 项技能的重要性评分（IM，1–5 分，来自职业分析师调查），按 <b>重要性³</b> 加权后归一化，使每项能力占比之和 = 1（加立方是为了突出各职业的特有技能，避免所有职业权重趋同）。</p>
-    <p>② AI 能力得分：对 35 项技能逐项评估 AI（大模型、智能体、自动化系统）的能力水平，取值 0–1。每项技能设定 2026 年基准分与年均增长率，<b>得分(year) = 基准分 + 增长率 × (年份 − 2026)</b>（上限 1）。拖动"AI 能力年份"滑块即可查看 2023–2040 年各职业替代分数的动态变化：认知类技能（如批判性思维、口头表达）持续攀升，机器人相关技能（安装、修理维护等）从低位快速追赶，已接近满分的技能（计算机编程、数学）增长放缓。</p>
-    <p>③ 替代分数 = Σ（能力权重 × AI 能力得分），即"该职业的能力组合中，有多大比例可由 AI 完成"。例：若某职业 = 计算机编程 0.5 + 需求分析 0.5，且 AI 编程能力为 1，则替代分数 = 0.5×1 + 0.5×0.5 = 0.75。</p>
-    <p>④ 数据处理：1016 个职业中，137 个新职业缺少技能评分，按同代码前缀职业 → 同大类平均的顺序估算补齐。职业名称与描述由机器翻译（Google）生成，卡片中保留英文原文对照。点击任意能力标签可筛选权重 ≥ 5% 的职业列表。分数仅供研究参考。</p>
-    <h3>AI 能力得分演进表（0–1，格式：2026 → 2040）</h3>
-    <div class="ai-table" id="aiTable"></div>
-  </div>
-</details>
-
 <main>
   <div id="list"></div>
   <div id="table">
     <div class="legend">
-      <div class="legend-title">能力注释（35 项，悬停查看 AI 得分，点击筛选职业）</div>
+      <div class="legend-title">能力注释与 AI 替代程度得分（35 项，数值为当前年份的 AI 能力得分；点击能力可筛选职业）</div>
       <div class="chips" id="legend"></div>
     </div>
-    <div class="thead"><span class="h-name">职业（点击行查看详细）</span><span class="h-score">替代分数</span><span class="h-bar">能力分布</span></div>
+    <div class="thead"><span class="h-name">职业（点击行展开详情）</span><span class="h-score">替代分数</span><span class="h-bar">能力分布</span></div>
     <div id="trows"></div>
   </div>
 </main>
@@ -170,7 +210,15 @@ const search = document.getElementById('search'), groupSel = document.getElement
       yearVal = document.getElementById('yearVal'), list = document.getElementById('list'),
       tableEl = document.getElementById('table'), trows = document.getElementById('trows'),
       loadMoreBtn = document.getElementById('loadMore'), countInfo = document.getElementById('countInfo'),
-      statsEl = document.getElementById('stats'), subtitleEl = document.getElementById('subtitle');
+      statsEl = document.getElementById('stats'), subtitleEl = document.getElementById('subtitle'),
+      searchWrap = document.getElementById('searchWrap'), clearSearch = document.getElementById('clearSearch'),
+      methodPanel = document.getElementById('methodPanel'), aiPanel = document.getElementById('aiPanel'),
+      btnMethod = document.getElementById('btnMethod'), btnAi = document.getElementById('btnAi'),
+      aiPanelYear = document.getElementById('aiPanelYear');
+
+const aiYearSel = document.getElementById('aiYearSel'), aiSortSel = document.getElementById('aiSortSel');
+
+const jobByCode = new Map(JOBS.map(j => [j.c, j]));
 
 document.getElementById('subtitle').textContent =
   `数据来源：美国劳工部 O*NET 29.1（1016 个职业）· 替代分数 = 能力分布 × AI 能力得分（当前年份：${YEAR}）`;
@@ -178,11 +226,27 @@ document.getElementById('subtitle').textContent =
 const groups = [...new Set(JOBS.map(j => j.g))].sort();
 groups.forEach(g => { const o = document.createElement('option'); o.value = o.textContent = g; groupSel.appendChild(o); });
 
-// AI 得分演进表
-document.getElementById('aiTable').innerHTML = SKILLS.map((s, i) => {
-  const a = AI[i], f = Math.min(1, a.c + a.g * 14);
-  return `<div><span>${s}</span><b style="color:${scoreColor((a.c + f) / 2)}">${a.c.toFixed(2)} → ${f.toFixed(2)}</b></div>`;
-}).join('');
+// AI 得分表（当前年份）
+for (let y = 2023; y <= 2040; y++) {
+  const o = document.createElement('option');
+  o.value = o.textContent = y;
+  aiYearSel.appendChild(o);
+}
+function renderAiTable() {
+  aiPanelYear.textContent = YEAR;
+  btnAi.textContent = `AI 能力得分（${YEAR}）`;
+  aiYearSel.value = YEAR;
+  const idx = SKILLS.map((_, i) => i);
+  const mode = aiSortSel.value;
+  idx.sort(mode === 'scoreDesc' ? (a, b) => aiAt(b, YEAR) - aiAt(a, YEAR)
+    : mode === 'scoreAsc' ? (a, b) => aiAt(a, YEAR) - aiAt(b, YEAR)
+    : (a, b) => SKILLS[a].localeCompare(SKILLS[b]));
+  document.getElementById('aiTable').innerHTML = idx.map(i => {
+    const a = aiAt(i, YEAR);
+    return `<div><span>${SKILLS[i]}</span><b style="color:${scoreColor(a)}">${a.toFixed(2)}</b></div>`;
+  }).join('');
+}
+renderAiTable();
 
 // 图例（能力注释）
 const legendEl = document.getElementById('legend');
@@ -231,16 +295,22 @@ function updateStats() {
 // ---- 详细卡片 ----
 function cardHTML(j) {
   const s = jobScore(j, YEAR);
-  const segs = [], chips = [];
+  const segs = [], chips = [], rest = [];
   let other = 0;
   j.w.forEach(([idx, w], rank) => {
+    const pct = (w * 100).toFixed(1);
+    const chip = `<span class="chip" data-skill="${SKILLS[idx]}" title="AI ${aiAt(idx, YEAR).toFixed(2)}"><i style="background:${skillColor(idx)}"></i>${SKILLS[idx]} <b>${pct}%</b></span>`;
     if (rank < 8) {
-      const pct = (w * 100).toFixed(1);
       segs.push(`<div class="seg" style="width:${w * 100}%;background:${skillColor(idx)}" data-tip="${SKILLS[idx]} ${pct}%（AI: ${aiAt(idx, YEAR).toFixed(2)}）"></div>`);
-      chips.push(`<span class="chip" data-skill="${SKILLS[idx]}"><i style="background:${skillColor(idx)}"></i>${SKILLS[idx]} <b>${pct}%</b></span>`);
-    } else other += w;
+      chips.push(chip);
+    } else {
+      other += w;
+      rest.push(chip);
+    }
   });
-  if (other > 0.005) segs.push(`<div class="seg" style="width:${other * 100}%;background:#3a4154" data-tip="其他能力 ${(other * 100).toFixed(1)}%"></div>`);
+  const hasOther = other > 0.005;
+  const otherPct = (other * 100).toFixed(1);
+  if (hasOther) segs.push(`<div class="seg other" style="width:${other * 100}%;background:#3a4154" data-tip="其他 ${rest.length} 项能力 ${otherPct}%（点击展开）"></div>`);
   return `<div class="card">
     <div class="card-top">
       <span class="card-title">${j.t}</span>
@@ -251,19 +321,34 @@ function cardHTML(j) {
     </div>
     <div class="desc" onclick="this.classList.toggle('open')">${j.d}<br><br><span style="font-style:italic;opacity:.65">【英文原文】${j.de}</span></div>
     <div class="bar-row"><span class="bar-label">能力分布</span><div class="bar">${segs.join('')}</div></div>
-    <div class="chips">${chips.join('')}</div>
+    <div class="chips">${chips.join('')}${hasOther ? `<span class="chip other-chip" title="点击展开其余 ${rest.length} 项能力">其他 ${rest.length} 项 <b>${otherPct}%</b></span>` : ''}</div>
+    ${hasOther ? `<div class="chips more-chips">${rest.join('')}</div>` : ''}
   </div>`;
 }
 
-// ---- 粗略表格 ----
+// ---- 概览表格 ----
 function rowHTML(j) {
   const s = jobScore(j, YEAR);
   const segs = j.w.map(([idx, w]) =>
     `<div class="seg" style="width:${w * 100}%;background:${skillColor(idx)}" data-tip="${SKILLS[idx]} ${(w * 100).toFixed(1)}%（AI: ${aiAt(idx, YEAR).toFixed(2)}）"></div>`).join('');
-  return `<div class="trow" data-te="${j.te}">
+  return `<div class="trow" data-code="${j.c}">
     <span class="tname">${j.t}<small>${j.c}</small></span>
     <span class="tscore" style="background:${scoreColor(s)}">${s.toFixed(3)}</span>
     <div class="bar">${segs}</div>
+  </div>`;
+}
+
+function detailHTML(j) {
+  const s = jobScore(j, YEAR);
+  const segs = j.w.map(([idx, w]) =>
+    `<div class="seg" style="width:${w * 100}%;background:${skillColor(idx)}" data-tip="${SKILLS[idx]} ${(w * 100).toFixed(1)}%（AI: ${aiAt(idx, YEAR).toFixed(2)}）"></div>`).join('');
+  const chips = j.w.map(([idx, w]) =>
+    `<span class="chip" data-skill="${SKILLS[idx]}" title="AI ${aiAt(idx, YEAR).toFixed(2)}"><i style="background:${skillColor(idx)}"></i>${SKILLS[idx]} <b>${(w * 100).toFixed(1)}%</b></span>`).join('');
+  return `<div class="tdetail">
+    <div class="tdesc">${j.d}<br><span class="en">【英文原文】${j.de}</span></div>
+    <div class="tdesc">替代分数（${YEAR}）：<b style="color:${scoreColor(s)}">${s.toFixed(3)}</b> · SOC ${j.c} · ${j.g} · 点击能力标签可筛选</div>
+    <div class="bar-row"><span class="bar-label">能力分布</span><div class="bar">${segs}</div></div>
+    <div class="chips">${chips}</div>
   </div>`;
 }
 
@@ -278,10 +363,15 @@ function renderMore() {
 loadMoreBtn.onclick = renderMore;
 
 // ---- 事件 ----
-[search, groupSel, sortSel, minScore, yearSel].forEach(el => el.addEventListener('input', () => {
-  if (el === yearSel) { YEAR = +yearSel.value; yearVal.textContent = YEAR; renderLegend(); }
-  apply();
-}));
+function setYear(y) {
+  YEAR = y;
+  yearSel.value = y; yearVal.textContent = y; aiYearSel.value = y;
+  renderLegend(); renderAiTable(); apply();
+}
+[search, groupSel, sortSel, minScore].forEach(el => el.addEventListener('input', apply));
+yearSel.addEventListener('input', () => setYear(+yearSel.value));
+aiYearSel.onchange = () => setYear(+aiYearSel.value);
+aiSortSel.onchange = renderAiTable;
 
 const btnDetail = document.getElementById('btnDetail'), btnTable = document.getElementById('btnTable');
 btnDetail.onclick = () => setView('detail');
@@ -306,18 +396,56 @@ function setSkill(name) {
 }
 function clearSkillFilter() { setSkill(skillFilter); }
 
-// 点击能力 chip 筛选；点击表格行跳转详细
+// 点击能力 chip 筛选；点击灰色“其他”展开；点击表格行展开/收起详情
 document.body.addEventListener('click', e => {
   const chip = e.target.closest('[data-skill]');
   if (chip) { setSkill(chip.dataset.skill); return; }
+  const other = e.target.closest('.seg.other, .other-chip');
+  if (other) {
+    const more = other.closest('.card')?.querySelector('.more-chips');
+    if (more) more.classList.toggle('open');
+    return;
+  }
   const row = e.target.closest('.trow');
   if (row) {
-    setView('detail');
-    search.value = row.dataset.te;
-    apply();
-    window.scrollTo({ top: 0 });
+    const next = row.nextElementSibling;
+    const isOpen = next && next.classList.contains('tdetail');
+    document.querySelectorAll('.tdetail').forEach(d => d.remove());
+    document.querySelectorAll('.trow.open').forEach(r => r.classList.remove('open'));
+    const job = jobByCode.get(row.dataset.code);
+    if (!isOpen && job) {
+      row.insertAdjacentHTML('afterend', detailHTML(job));
+      row.classList.add('open');
+    }
   }
 });
+
+// ---- 搜索清除 ----
+search.addEventListener('input', () => searchWrap.classList.toggle('has-value', !!search.value));
+clearSearch.onclick = () => {
+  search.value = '';
+  searchWrap.classList.remove('has-value');
+  apply();
+  search.focus();
+};
+
+// ---- 右上角弹出面板 ----
+function closePanels() {
+  methodPanel.classList.remove('open'); aiPanel.classList.remove('open');
+  btnMethod.classList.remove('active'); btnAi.classList.remove('active');
+}
+function togglePanel(panel, btn) {
+  const open = !panel.classList.contains('open');
+  closePanels();
+  if (open) { panel.classList.add('open'); btn.classList.add('active'); }
+}
+btnMethod.onclick = e => { e.stopPropagation(); togglePanel(methodPanel, btnMethod); };
+btnAi.onclick = e => { e.stopPropagation(); togglePanel(aiPanel, btnAi); };
+document.addEventListener('click', e => {
+  if (e.target.closest('.pop-panel, .hdr-btn, .controls')) return;
+  closePanels();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanels(); });
 
 apply();
 </script>
